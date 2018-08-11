@@ -18,13 +18,20 @@ static unsigned long long get_timestamp ()
 
 int main(int argc, char** argv) 
 {
+    // INF test - in IEEE the result is supposed to be INF
+    Float test1(1.0f/0);
+    Float test2((float)(1ULL << 63));
+    Float test_result = test1 / test2;
+    cout << test_result.get_ieee() << endl;
+
+
     Float a(100.0f);
     Float b(0.125f);
     Float c = a + b;
     cout << c.get_ieee() << endl;
 
 
-    const int TEST_TIME = 10000000;
+    const int TEST_TIME = 100000000;
     std::srand(std::time(0));
 
 
