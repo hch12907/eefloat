@@ -59,7 +59,7 @@ Float Float::operator/(const Float& rhs)
         return Float::depromote(a / b);
     }
 
-    return Float::depromote(this->get_ieee() / rhs.get_ieee());
+    return Float(this->get_ieee() / rhs.get_ieee());
 }
 
 bool Float::is_inf() const
@@ -122,7 +122,8 @@ Float Float::depromote(double val) const
 
     if UNLIKELY(new_exp >= 255) 
     { 
-        return Float(std::numeric_limits<float>::infinity()); 
+        float sign = new_sign ? -1 : 0;
+        return Float(sign * std::numeric_limits<float>::infinity()); 
     }
     
     if UNLIKELY(new_exp <= 0)

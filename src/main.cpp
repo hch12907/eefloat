@@ -18,17 +18,36 @@ static unsigned long long get_timestamp ()
 
 int main(int argc, char** argv) 
 {
-    // INF test - in IEEE the result is supposed to be INF
-    Float test1(1.0f/0);
-    Float test2((float)(1ULL << 63));
-    Float test_result = test1 / test2;
-    cout << test_result.get_ieee() << endl;
+    // INF test
+    // - in IEEE the result is supposed to be INF
+    // - in PS2 the result is supposed to be MAX divided by 2^63 (could be wrong)
+    {
+        Float test1(1.0f/0);
+        Float test2((float)(1ULL << 63));
+        Float test_result = test1 / test2;
+        cout << test_result.get_ieee() << endl;
+    }
 
 
-    Float a(100.0f);
-    Float b(0.125f);
-    Float c = a + b;
-    cout << c.get_ieee() << endl;
+    // Divided-By-Zero test
+    // - in IEEE the result is supposed to be INF
+    // - in PS2 the result is supposed to be the MAX(or INF in IEEE)
+    {
+        Float test1(1.0f);
+        Float test2(0.0f);
+        Float test_result = test1 / test2;
+        cout << test_result.get_ieee() << endl;
+    }
+
+
+    // Normal test - A test where the float is not promoted to a double
+    // - in both IEEE and PS2 the result is supposed to be 100.125
+    {
+        Float a(100.0f);
+        Float b(0.125f);
+        Float c = a + b;
+        cout << c.get_ieee() << endl;
+    }
 
 
     const int TEST_TIME = 100000000;
