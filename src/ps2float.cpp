@@ -11,7 +11,7 @@ Float Float::operator+(const Float& rhs)
         return Float(std::numeric_limits<float>::infinity()); 
     }
         
-    if UNLIKELY(this->is_nan() || rhs.is_nan())
+    if UNLIKELY(this->is_nan() || rhs.is_nan() || this->is_subnormal() || rhs.is_subnormal())
     {
         const double a = this->promote();
         const double b = rhs.promote();
@@ -23,7 +23,7 @@ Float Float::operator+(const Float& rhs)
 
 Float Float::operator-(const Float& rhs)
 {
-    if UNLIKELY(this->is_nan() || this->is_inf() || rhs.is_nan() || rhs.is_inf())
+    if UNLIKELY(this->is_nan() || this->is_inf() || rhs.is_nan() || rhs.is_inf() || this->is_subnormal() || rhs.is_subnormal())
     {
         const double a = this->promote();
         const double b = rhs.promote();
@@ -40,7 +40,7 @@ Float Float::operator*(const Float& rhs)
         return Float(std::numeric_limits<float>::infinity()); 
     }
 
-    if UNLIKELY(this->is_nan() || rhs.is_nan())
+    if UNLIKELY(this->is_nan() || rhs.is_nan() || this->is_subnormal() || rhs.is_subnormal())
     {
         const double a = this->promote();
         const double b = rhs.promote();
@@ -52,7 +52,7 @@ Float Float::operator*(const Float& rhs)
 
 Float Float::operator/(const Float& rhs) 
 {
-    if UNLIKELY(this->is_nan() || this->is_inf() || rhs.is_nan() || rhs.is_inf())
+    if UNLIKELY(this->is_nan() || this->is_inf() || rhs.is_nan() || rhs.is_inf() || this->is_subnormal() || rhs.is_subnormal())
     {
         const double a = this->promote();
         const double b = rhs.promote();
@@ -64,14 +64,17 @@ Float Float::operator/(const Float& rhs)
 
 bool Float::is_inf() const
 {
-    const unsigned int u = *reinterpret_cast<const unsigned int*>(&this->value);
-    return u == 0xFFFFFFFF;
+    return *reinterpret_cast<const unsigned int*>(&this->value) == 0xFFFFFFFF;
 }
 
 bool Float::is_nan() const
 {
-    const unsigned int u = *reinterpret_cast<const unsigned int*>(&this->value);
     return get_exp() == 0xFF && !is_inf();
+}
+
+bool Float::is_subnormal() const
+{
+    return get_exp() == 0;
 }
 
 float Float::get_ieee() const

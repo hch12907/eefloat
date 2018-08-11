@@ -14,8 +14,10 @@ public:
     
     bool is_inf() const;
     bool is_nan() const;
-    float get_ieee() const;
+    bool is_subnormal() const;
+
     unsigned char get_exp() const;
+    float get_ieee() const;
     int get_mantissa() const;
     bool get_sign() const;
 
