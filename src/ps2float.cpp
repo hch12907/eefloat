@@ -11,7 +11,7 @@ Float Float::operator+(const Float& rhs)
         return Float(std::numeric_limits<float>::infinity()); 
     }
         
-    if UNLIKELY(this->is_nan() || rhs.is_nan() || this->is_subnormal() || rhs.is_subnormal())
+    if UNLIKELY(this->is_nan() || rhs.is_nan())
     {
         const double a = this->promote();
         const double b = rhs.promote();
@@ -23,7 +23,7 @@ Float Float::operator+(const Float& rhs)
 
 Float Float::operator-(const Float& rhs)
 {
-    if UNLIKELY(this->is_nan() || this->is_inf() || rhs.is_nan() || rhs.is_inf() || this->is_subnormal() || rhs.is_subnormal())
+    if UNLIKELY(this->is_nan() || this->is_inf() || rhs.is_nan() || rhs.is_inf())
     {
         const double a = this->promote();
         const double b = rhs.promote();
@@ -40,7 +40,7 @@ Float Float::operator*(const Float& rhs)
         return Float(std::numeric_limits<float>::infinity()); 
     }
 
-    if UNLIKELY(this->is_nan() || rhs.is_nan() || this->is_subnormal() || rhs.is_subnormal())
+    if UNLIKELY(this->is_nan() || rhs.is_nan())
     {
         const double a = this->promote();
         const double b = rhs.promote();
@@ -52,7 +52,7 @@ Float Float::operator*(const Float& rhs)
 
 Float Float::operator/(const Float& rhs) 
 {
-    if UNLIKELY(this->is_nan() || this->is_inf() || rhs.is_nan() || rhs.is_inf() || this->is_subnormal() || rhs.is_subnormal())
+    if UNLIKELY(this->is_nan() || this->is_inf() || rhs.is_nan() || rhs.is_inf())
     {
         const double a = this->promote();
         const double b = rhs.promote();
@@ -64,17 +64,17 @@ Float Float::operator/(const Float& rhs)
 
 bool Float::is_inf() const
 {
-    return *reinterpret_cast<const unsigned int*>(&this->value) == 0xFFFFFFFF;
+    return get_exp() == 0xFF && get_mantissa() == 0;
 }
 
 bool Float::is_nan() const
 {
-    return get_exp() == 0xFF && !is_inf();
+    return get_exp() == 0xFF && get_mantissa() != 0;
 }
 
 bool Float::is_subnormal() const
 {
-    return get_exp() == 0;
+    return get_exp() == 0 && get_mantissa() != 0;
 }
 
 float Float::get_ieee() const
@@ -110,11 +110,11 @@ double Float::promote() const
 
     const long long promoted = new_mantissa | (new_exp << 52) | (new_sign << 63);
     return *reinterpret_cast<const double*>(&promoted);
-    
 }
 
-Float Float::depromote(double val) const 
+Float Float::depromote(const double val) const 
 {
+    // read the double as a 64bit unsigned integer
     const unsigned long long u = *reinterpret_cast<const unsigned long long*>(&val);
     // get sign
     const int new_sign = (u >> 63) & 1;
@@ -124,17 +124,14 @@ Float Float::depromote(double val) const
     const int new_mantissa = (u & ((1LL << 52) - 1)) >> 29;
 
     if UNLIKELY(new_exp >= 255) 
-    { 
-        float sign = new_sign ? -1 : 0;
-        return Float(sign * std::numeric_limits<float>::infinity()); 
+    {
+        return Float(0xFFFFFFFF & new_sign);
     }
     
     if UNLIKELY(new_exp <= 0)
     {
-        float result = new_sign ? -0.0f : 0.0f;
-        return Float(result);
+        return Float((unsigned int)new_sign << 31);
     }
 
-    const int depromoted = new_mantissa | (new_exp << 23) | (new_sign << 31);
-    return Float(*reinterpret_cast<const float*>(&depromoted));
+    return Float((unsigned int)(new_mantissa | (new_exp << 23) | (new_sign << 31)));
 }

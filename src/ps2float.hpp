@@ -5,7 +5,11 @@
 class Float 
 {
 public:
-    Float(float val) : value(val) {};
+    Float(const float val) : value(val) {};
+    Float(const unsigned int val) 
+    {
+        this->value = *reinterpret_cast<const float*>(&val);
+    }
 
     Float operator+(const Float& rhs);
     Float operator-(const Float& rhs);
